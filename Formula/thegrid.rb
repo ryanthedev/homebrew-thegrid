@@ -2,7 +2,7 @@ class Thegrid < Formula
   desc "Window management system for macOS"
   homepage "https://github.com/ryanthedev/thegrid"
   url "https://github.com/ryanthedev/the-grid/archive/refs/tags/v0.1.1.tar.gz"
-  sha256 "a0f058b2f0928e276b2529f4ae50d3bdcf57ad9a8ecb6f97a77993c9b9a64c08"
+  sha256 "cb9e54af319f1f13771920b9bc6b37e3f255d1e97753d359fcbd6517db3d9d49"
   license "MIT"
   version "0.1.1"
 
