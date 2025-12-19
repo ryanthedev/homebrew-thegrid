@@ -1,27 +1,17 @@
 class Thegrid < Formula
   desc "Window management system for macOS"
-  homepage "https://github.com/ryanthedev/thegrid"
-  url "https://github.com/ryanthedev/the-grid/archive/refs/tags/v0.1.1.tar.gz"
-  sha256 "cb9e54af319f1f13771920b9bc6b37e3f255d1e97753d359fcbd6517db3d9d49"
+  homepage "https://github.com/ryanthedev/the-grid"
+  url "https://github.com/ryanthedev/the-grid/releases/download/v0.1.1/thegrid-0.1.1-darwin-universal.tar.gz"
+  sha256 "PLACEHOLDER_SHA256"
   license "MIT"
   version "0.1.1"
 
   depends_on :macos => :ventura
-  depends_on :xcode => ["14.0", :build]
-  depends_on "go" => :build
 
   def install
-    # Build server (Swift)
-    system "swift", "build", "-c", "release",
-           "--package-path", "grid-server"
-
-    # Build CLI (Go)
-    cd "grid-cli" do
-      system "go", "build", "-o", "#{bin}/thegrid", "./cmd/grid"
-    end
-
-    # Install binaries
-    bin.install "grid-server/.build/release/grid-server"
+    # Install pre-built universal binaries
+    bin.install "bin/grid-server"
+    bin.install "bin/thegrid"
   end
 
   def caveats
@@ -36,7 +26,7 @@ class Thegrid < Formula
         - Accessibility permissions required (System Settings > Privacy)
         - SIP must be partially disabled for full functionality
 
-      Documentation: https://github.com/ryanthedev/thegrid
+      Documentation: https://github.com/ryanthedev/the-grid
     EOS
   end
 
