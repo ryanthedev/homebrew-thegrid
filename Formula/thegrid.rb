@@ -11,10 +11,11 @@ class Thegrid < Formula
   def install
     # Install the app bundle (required for Accessibility permissions)
     prefix.install "GridServer.app"
-    
-    # Install CLI binary
+
+    # Install CLI and picker binaries
     bin.install "bin/thegrid"
-    
+    bin.install "bin/grid-picker"
+
     # Create symlink for grid-server command
     bin.install_symlink prefix/"GridServer.app/Contents/MacOS/grid-server"
   end
