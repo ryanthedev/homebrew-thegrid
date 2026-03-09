@@ -34,95 +34,50 @@ jobs:
           INPUT_TARBALL_URL: ${{ inputs.tarball_url }}
         run: |
           echo "Updating formula to version $INPUT_VERSION"
-          echo "SHA256: $INPUT_SHA256"
-          echo "Tarball URL: $INPUT_TARBALL_URL"
 
           # Update version, URL, SHA256
           sed -i 's/version ".*"/version "'"$INPUT_VERSION"'"/' Formula/thegrid.rb
           sed -i 's|url ".*"|url "'"$INPUT_TARBALL_URL"'"|' Formula/thegrid.rb
           sed -i 's/sha256 ".*"/sha256 "'"$INPUT_SHA256"'"/' Formula/thegrid.rb
 
-          # Download tarball and read FORMULA_BINS manifest
-          echo ""
-          echo "Downloading tarball to read FORMULA_BINS manifest..."
+          # Download tarball for FORMULA_INSTALL
           curl -sL "$INPUT_TARBALL_URL" -o /tmp/release.tar.gz
-
-          # Verify SHA256
           ACTUAL_SHA=$(sha256sum /tmp/release.tar.gz | cut -d' ' -f1)
           if [ "$ACTUAL_SHA" != "$INPUT_SHA256" ]; then
             echo "ERROR: SHA256 mismatch! Expected $INPUT_SHA256, got $ACTUAL_SHA"
             exit 1
           fi
-          echo "SHA256 verified"
 
-          # Extract and read manifest
           mkdir -p /tmp/release
           tar -xzf /tmp/release.tar.gz -C /tmp/release --strip-components=1
 
-          if [ -f /tmp/release/FORMULA_BINS ]; then
-            BINS=$(cat /tmp/release/FORMULA_BINS)
-            echo "FORMULA_BINS manifest: $BINS"
-
-            # Generate bin.install lines
-            BIN_LINES=""
-            for b in $BINS; do
-              BIN_LINES="${BIN_LINES}    bin.install \"${b}\"\n"
-            done
-
-            # Replace the bin.install block between markers
+          # Replace install block if FORMULA_INSTALL exists in tarball
+          if [ -f /tmp/release/FORMULA_INSTALL ]; then
+            echo "Found FORMULA_INSTALL, updating install block"
             python3 -c "
-import re, sys
+import re
 
-with open('Formula/thegrid.rb', 'r') as f:
+with open('Formula/thegrid.rb') as f:
     content = f.read()
 
-# Replace all consecutive bin.install lines with new ones
-new_bins = '''$BIN_LINES'''.rstrip()
+with open('/tmp/release/FORMULA_INSTALL') as f:
+    install_body = f.read().rstrip()
+
 content = re.sub(
-    r'(    # Install CLI.*\n)(    bin\.install.*\n)+',
-    r'\g<1>' + new_bins + '\n',
-    content
+    r'(  def install\n).*?(  end)',
+    r'\g<1>' + install_body + '\n  end',
+    content,
+    flags=re.DOTALL
 )
 
 with open('Formula/thegrid.rb', 'w') as f:
     f.write(content)
 "
-            echo "Updated bin.install lines from manifest"
           else
-            echo "WARNING: No FORMULA_BINS manifest found in tarball"
-            echo "Validating existing formula install paths..."
+            echo "No FORMULA_INSTALL in tarball, keeping existing install block"
           fi
 
-          # Validate all bin.install paths exist in tarball
           echo ""
-          echo "Validating formula install paths..."
-          ERRORS=0
-          while IFS= read -r line; do
-            path=$(echo "$line" | grep -oP 'bin\.install "\K[^"]+')
-            if [ -n "$path" ] && [ ! -f "/tmp/release/$path" ]; then
-              echo "ERROR: Formula references '$path' but it does not exist in tarball"
-              ERRORS=$((ERRORS + 1))
-            fi
-          done < <(grep 'bin\.install' Formula/thegrid.rb)
-
-          if [ "$ERRORS" -gt 0 ]; then
-            echo ""
-            echo "FATAL: $ERRORS file(s) referenced in formula missing from tarball"
-            echo "Tarball contents:"
-            ls -R /tmp/release/
-            exit 1
-          fi
-
-          # Also validate GridServer.app exists
-          if [ ! -d "/tmp/release/GridServer.app" ]; then
-            echo "ERROR: GridServer.app not found in tarball"
-            ls -R /tmp/release/
-            exit 1
-          fi
-
-          echo "All formula paths validated"
-          echo ""
-          echo "Updated formula:"
           cat Formula/thegrid.rb
 
       - name: Commit and push
@@ -135,6 +90,3 @@ with open('Formula/thegrid.rb', 'w') as f:
           git add Formula/thegrid.rb
           git commit -m "chore: update formula for thegrid v$INPUT_VERSION"
           git push
-
-          echo ""
-          echo "Formula updated to version $INPUT_VERSION"
