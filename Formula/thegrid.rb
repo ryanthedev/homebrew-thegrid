@@ -1,10 +1,10 @@
 class Thegrid < Formula
   desc "Window management system for macOS"
   homepage "https://github.com/ryanthedev/the-grid"
-  url "https://github.com/ryanthedev/the-grid/releases/download/v0.3.8/thegrid-0.3.8-darwin-universal.tar.gz"
-  sha256 "e12006c28cb6a074dd122ecb13c0016be6ce946f32cf0581095660b1cb3c32ea"
+  url "https://github.com/ryanthedev/the-grid/releases/download/v0.4.0/thegrid-0.4.0-darwin-universal.tar.gz"
+  sha256 "5aeec480cb57766b099b24241ca3f88bf063b3bba31ea610e9da7dd61c530587"
   license "MIT"
-  version "0.3.8"
+  version "0.4.0"
 
   depends_on :macos => :ventura
 
