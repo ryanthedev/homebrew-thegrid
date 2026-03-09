@@ -35,12 +35,11 @@ jobs:
         run: |
           echo "Updating formula to version $INPUT_VERSION"
 
-          # Update version, URL, SHA256
           sed -i 's/version ".*"/version "'"$INPUT_VERSION"'"/' Formula/thegrid.rb
           sed -i 's|url ".*"|url "'"$INPUT_TARBALL_URL"'"|' Formula/thegrid.rb
           sed -i 's/sha256 ".*"/sha256 "'"$INPUT_SHA256"'"/' Formula/thegrid.rb
 
-          # Download tarball for FORMULA_INSTALL
+          # Download tarball and replace install block from FORMULA_INSTALL
           curl -sL "$INPUT_TARBALL_URL" -o /tmp/release.tar.gz
           ACTUAL_SHA=$(sha256sum /tmp/release.tar.gz | cut -d' ' -f1)
           if [ "$ACTUAL_SHA" != "$INPUT_SHA256" ]; then
@@ -51,28 +50,25 @@ jobs:
           mkdir -p /tmp/release
           tar -xzf /tmp/release.tar.gz -C /tmp/release --strip-components=1
 
-          # Replace install block if FORMULA_INSTALL exists in tarball
           if [ -f /tmp/release/FORMULA_INSTALL ]; then
             echo "Found FORMULA_INSTALL, updating install block"
-            python3 -c "
-import re
-
-with open('Formula/thegrid.rb') as f:
-    content = f.read()
-
-with open('/tmp/release/FORMULA_INSTALL') as f:
-    install_body = f.read().rstrip()
-
-content = re.sub(
-    r'(  def install\n).*?(  end)',
-    r'\g<1>' + install_body + '\n  end',
-    content,
-    flags=re.DOTALL
-)
-
-with open('Formula/thegrid.rb', 'w') as f:
-    f.write(content)
-"
+            cat > /tmp/update_formula.py << 'PYEOF'
+          import re, sys
+          with open(sys.argv[1]) as f:
+              content = f.read()
+          with open(sys.argv[2]) as f:
+              install_body = f.read().rstrip()
+          content = re.sub(
+              r'(  def install\n).*?(  end)',
+              lambda m: m.group(1) + install_body + '\n  end',
+              content,
+              count=1,
+              flags=re.DOTALL
+          )
+          with open(sys.argv[1], 'w') as f:
+              f.write(content)
+          PYEOF
+            python3 /tmp/update_formula.py Formula/thegrid.rb /tmp/release/FORMULA_INSTALL
           else
             echo "No FORMULA_INSTALL in tarball, keeping existing install block"
           fi
