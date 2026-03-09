@@ -1,22 +1,17 @@
 class Thegrid < Formula
   desc "Window management system for macOS"
   homepage "https://github.com/ryanthedev/the-grid"
-  url "https://github.com/ryanthedev/the-grid/releases/download/v0.4.1/thegrid-0.4.1-darwin-universal.tar.gz"
-  sha256 "34c08768cf6a15c51850c9894e1a604f332d4eab9af7dba7827c508e96dc1a83"
+  url "https://github.com/ryanthedev/the-grid/releases/download/v0.4.2/thegrid-0.4.2-darwin-universal.tar.gz"
+  sha256 "0c2ec686ce6c6f825f19818ff464c751c7f138b053209d4d0cb88138392385b1"
   license "MIT"
-  version "0.4.1"
+  version "0.4.2"
 
   depends_on :macos => :ventura
 
   def install
-    # Install the app bundle (required for Accessibility permissions)
     prefix.install "GridServer.app"
-
-    # Install CLI and viewer binaries
     bin.install "bin/thegrid"
     bin.install "bin/grid-viewer"
-
-    # Create symlink for grid-server command
     bin.install_symlink prefix/"GridServer.app/Contents/MacOS/grid-server"
   end
 
