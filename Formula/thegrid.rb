@@ -1,18 +1,20 @@
 class Thegrid < Formula
   desc "Window management system for macOS"
   homepage "https://github.com/ryanthedev/the-grid"
-  url "https://github.com/ryanthedev/the-grid/releases/download/v0.4.5/thegrid-0.4.5-darwin-universal.tar.gz"
-  sha256 "7e038b8900ea915b9319e9fb3b462a80984f8ffb19791f56fec1e498d5c0432b"
+  url "https://github.com/ryanthedev/the-grid/releases/download/v0.5.1/thegrid-0.5.1-darwin-universal.tar.gz"
+  sha256 "4a90163e7af6ca68e44f6ad07d03fa8678b66b2c77d0d793219288c34ca3b20e"
   license "MIT"
-  version "0.4.5"
+  version "0.5.1"
 
   depends_on :macos => :ventura
 
   def install
     prefix.install "GridServer.app"
+    prefix.install "GridNotify.app"
     bin.install "bin/thegrid"
     bin.install "bin/grid-viewer"
     bin.install_symlink prefix/"GridServer.app/Contents/MacOS/grid-server"
+    bin.install_symlink prefix/"GridNotify.app/Contents/MacOS/grid-notify"
   end
 
   def caveats
